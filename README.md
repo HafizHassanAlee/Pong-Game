@@ -1,10 +1,10 @@
 # Pong — Neon Rally
 
-A self-contained, browser-playable Pong game. No dependencies or build tools are required.
+A browser-playable Pong game built with HTML, CSS, and vanilla JavaScript. No dependencies or build tools are required.
 
 ## Run it
 
-Open `index.html` in a modern browser.
+Open `index.html` in a modern browser. The page loads its styling from `styles.css` and game logic from `script.js`.
 
 ## Controls
 
