@@ -1,0 +1,12 @@
+{
+  "name": "neon-rally-pong",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Browser Pong with local tournaments and self-hosted online multiplayer",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.3"
+  }
+}

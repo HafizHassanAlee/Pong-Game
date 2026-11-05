@@ -4,8 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#090d18" />
+    <meta name="description" content="Play Neon Rally, an upgraded Pong game with multiplayer, tournaments, themes, and more." />
     <title>Pong — Neon Rally</title>
     <link rel="stylesheet" href="styles.css" />
+    <script src="script.js" defer></script>
   </head>
   <body>
     <main class="page">
@@ -16,60 +18,134 @@
             <span class="status-dot" aria-hidden="true"></span>
             <span id="statusText">Ready</span>
           </div>
+          <button class="icon-button" id="soundButton" type="button" aria-label="Enable sound" title="Sound and music">♫</button>
           <button class="icon-button" id="pauseButton" type="button" aria-label="Pause game" title="Pause (Space)">Ⅱ</button>
         </div>
       </header>
 
       <section class="intro" aria-labelledby="pageTitle">
-        <p class="eyebrow">The original arcade classic</p>
+        <p class="eyebrow">The original arcade classic, reimagined</p>
         <h1 id="pageTitle">PONG<span>.</span></h1>
-        <p class="subtitle">A little friendly competition. First to 7 takes the match.</p>
+        <p class="subtitle">Pick your challenge. First to your target score takes the match.</p>
+      </section>
+
+      <section class="settings-panel" aria-label="Game settings">
+        <label>Mode
+          <select id="modeSelect">
+            <option value="cpu">Solo vs CPU</option>
+            <option value="local">Local 2-player</option>
+            <option value="online">Online multiplayer</option>
+            <option value="tournament">Tournament</option>
+          </select>
+        </label>
+        <label id="difficultyField">Difficulty
+          <select id="difficultySelect">
+            <option value="easy">Easy</option>
+            <option value="normal" selected>Normal</option>
+            <option value="hard">Hard</option>
+          </select>
+        </label>
+        <label>Points to win
+          <select id="targetSelect">
+            <option value="3">3 points</option>
+            <option value="5">5 points</option>
+            <option value="7" selected>7 points</option>
+            <option value="11">11 points</option>
+          </select>
+        </label>
+        <label>Ball speed
+          <select id="speedSelect">
+            <option value="slow">Chill</option>
+            <option value="normal" selected>Classic</option>
+            <option value="fast">Turbo</option>
+          </select>
+        </label>
+        <label>Paddle size
+          <select id="paddleSelect">
+            <option value="small">Small</option>
+            <option value="normal" selected>Classic</option>
+            <option value="large">Large</option>
+          </select>
+        </label>
+        <label>Theme
+          <select id="themeSelect">
+            <option value="neon" selected>Neon mint</option>
+            <option value="sunset">Sunset</option>
+            <option value="ice">Arctic ice</option>
+            <option value="mono">Monochrome</option>
+          </select>
+        </label>
+      </section>
+
+      <section class="online-panel" id="onlinePanel" aria-label="Online room" hidden>
+        <div class="online-copy">
+          <strong>Play online</strong>
+          <span id="connectionMessage" role="status">Host a new room or join with a friend's room code.</span>
+        </div>
+        <button class="secondary-button" id="hostButton" type="button">Create room</button>
+        <label class="room-code-field">Room code
+          <input id="roomCodeInput" type="text" inputmode="text" maxlength="6" autocomplete="off" placeholder="ABC123" aria-label="Room code" />
+        </label>
+        <button class="secondary-button" id="joinButton" type="button">Join room</button>
+      </section>
+
+      <section class="tournament-panel" id="tournamentPanel" aria-live="polite" hidden>
+        <strong id="tournamentTitle">Tournament</strong>
+        <span id="tournamentStatus">Win 3 matches to lift the cup.</span>
       </section>
 
       <section class="game-card" aria-label="Pong game">
         <div class="scoreboard" aria-label="Scoreboard">
           <div class="player">
-            <span class="player-name">You</span>
-            <span class="score" id="playerScore" aria-label="Your score">0</span>
+            <span class="player-name" id="leftName">You</span>
+            <span class="score" id="playerScore" aria-label="Left player score">0</span>
           </div>
           <span class="score-divider" aria-hidden="true">:</span>
           <div class="player">
-            <span class="player-name">CPU</span>
-            <span class="score" id="cpuScore" aria-label="CPU score">0</span>
+            <span class="player-name" id="rightName">CPU</span>
+            <span class="score" id="cpuScore" aria-label="Right player score">0</span>
           </div>
         </div>
-        <div class="court">
-          <canvas id="gameCanvas" width="960" height="540" role="img" aria-label="Pong court. Use W and S or the up and down arrow keys to move your paddle.">
+        <div class="court" id="court">
+          <canvas id="gameCanvas" width="960" height="540" role="img" aria-label="Pong court. Player one uses W and S; player two uses the up and down arrow keys.">
             Your browser does not support the canvas element.
           </canvas>
           <div class="overlay" id="gameOverlay">
             <div class="overlay-content">
               <p class="overlay-kicker" id="overlayKicker">Ready when you are</p>
               <h2 id="overlayTitle">Ready to rally?</h2>
-              <p id="overlayMessage">Move your paddle, return the ball, and be the first to score 7.</p>
+              <p id="overlayMessage">Move your paddle, return the ball, and be the first to score.</p>
               <button class="primary-button" id="overlayButton" type="button">Start game</button>
             </div>
           </div>
         </div>
         <div class="game-footer">
-          <div class="keyboard-hint" aria-label="Keyboard controls">
-            <span>Move</span>
-            <span class="key-group"><kbd>W</kbd><kbd>S</kbd></span>
-            <span>or</span>
-            <span class="key-group"><kbd>↑</kbd><kbd>↓</kbd></span>
+          <div class="keyboard-hint" id="keyboardHint" aria-label="Keyboard controls">
+            <span>Move</span><span class="key-group"><kbd>W</kbd><kbd>S</kbd></span>
+            <span id="rightControls"><span>or</span> <span class="key-group"><kbd>↑</kbd><kbd>↓</kbd></span></span>
             <span class="desktop-only">· &nbsp;Pause <kbd>Space</kbd></span>
           </div>
+          <span class="powerup-hint">Power-ups: + longer paddle · S slow ball · − smaller rival</span>
           <button class="restart-button" id="restartButton" type="button">↻ &nbsp;Restart</button>
         </div>
       </section>
 
       <div class="touch-controls" aria-label="Touch paddle controls">
-        <button class="touch-button" type="button" data-control="up" aria-label="Move paddle up">↑</button>
-        <button class="touch-button" type="button" data-control="down" aria-label="Move paddle down">↓</button>
+        <div class="touch-player" id="touchPlayerOne"><span>P1</span><button class="touch-button" type="button" data-control="up" aria-label="Move player one up">↑</button><button class="touch-button" type="button" data-control="down" aria-label="Move player one down">↓</button></div>
+        <div class="touch-player" id="touchPlayerTwo" hidden><span>P2</span><button class="touch-button" type="button" data-control="p2-up" aria-label="Move player two up">↑</button><button class="touch-button" type="button" data-control="p2-down" aria-label="Move player two down">↓</button></div>
       </div>
-      <p class="footnote">A quick game by Neon Rally Studio</p>
-    </main>
 
-    <script src="script.js" defer></script>
+      <section class="extras-grid" aria-label="Player records">
+        <div class="record-card">
+          <div class="record-heading"><h2>Personal bests</h2><span>Saved on this device</span></div>
+          <ol id="highScoreList" class="high-score-list"><li class="empty-record">Your first win is waiting.</li></ol>
+        </div>
+        <div class="record-card">
+          <div class="record-heading"><h2>Match history</h2><span>Last 5 games</span></div>
+          <ol id="matchHistory" class="history-list"><li class="empty-record">Finished games will show up here.</li></ol>
+        </div>
+      </section>
+      <p class="footnote">A quick game by Neon Rally Studio · Drag on the court to move your paddle</p>
+    </main>
   </body>
 </html>
