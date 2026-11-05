@@ -1,0 +1,775 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#090d18" />
+    <title>Pong — Neon Rally</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        background: #090d18;
+        color: #f5f7ff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        margin: 0;
+        background:
+          radial-gradient(ellipse at 50% -18%, rgba(39, 68, 128, 0.3), transparent 55%),
+          #090d18;
+      }
+
+      button {
+        font: inherit;
+      }
+
+      .page {
+        width: min(100% - 40px, 1040px);
+        margin: 0 auto;
+        padding: 28px 0 34px;
+      }
+
+      .topbar,
+      .brand,
+      .top-actions,
+      .scoreboard,
+      .player,
+      .game-footer,
+      .keyboard-hint,
+      .touch-controls {
+        display: flex;
+        align-items: center;
+      }
+
+      .topbar {
+        justify-content: space-between;
+        margin-bottom: 48px;
+      }
+
+      .brand {
+        gap: 11px;
+        color: #dfe5f7;
+        font-size: 13px;
+        font-weight: 750;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 30px;
+        height: 30px;
+        place-items: center;
+        border: 1px solid rgba(115, 245, 207, 0.3);
+        border-radius: 9px;
+        background: rgba(115, 245, 207, 0.1);
+        color: #73f5cf;
+        font-size: 16px;
+      }
+
+      .top-actions {
+        gap: 9px;
+      }
+
+      .status-pill,
+      .icon-button,
+      .restart-button,
+      .touch-button {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.045);
+        color: #b7c0d8;
+      }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 35px;
+        padding: 0 12px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+      }
+
+      .status-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #f3bb66;
+        box-shadow: 0 0 10px rgba(243, 187, 102, 0.8);
+      }
+
+      .status-pill[data-state="playing"] .status-dot {
+        background: #73f5cf;
+        box-shadow: 0 0 10px rgba(115, 245, 207, 0.8);
+      }
+
+      .status-pill[data-state="paused"] .status-dot {
+        background: #9ba8ff;
+        box-shadow: 0 0 10px rgba(155, 168, 255, 0.8);
+      }
+
+      .icon-button,
+      .restart-button,
+      .touch-button {
+        cursor: pointer;
+        transition: border-color 140ms ease, background 140ms ease, color 140ms ease, transform 140ms ease;
+      }
+
+      .icon-button {
+        width: 36px;
+        height: 36px;
+        border-radius: 11px;
+        font-size: 16px;
+      }
+
+      .icon-button:hover,
+      .restart-button:hover,
+      .touch-button:hover {
+        border-color: rgba(115, 245, 207, 0.42);
+        background: rgba(115, 245, 207, 0.09);
+        color: #f5f7ff;
+      }
+
+      .icon-button:active,
+      .restart-button:active,
+      .touch-button:active {
+        transform: translateY(1px);
+      }
+
+      .intro {
+        margin-bottom: 27px;
+        text-align: center;
+      }
+
+      .eyebrow {
+        margin: 0 0 9px;
+        color: #73f5cf;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(35px, 6vw, 58px);
+        font-weight: 800;
+        letter-spacing: -0.07em;
+        line-height: 1;
+      }
+
+      h1 span {
+        color: #73f5cf;
+      }
+
+      .subtitle {
+        margin: 13px 0 0;
+        color: #8e98b1;
+        font-size: 14px;
+      }
+
+      .game-card {
+        overflow: hidden;
+        border: 1px solid rgba(171, 190, 255, 0.13);
+        border-radius: 18px;
+        background: rgba(17, 23, 39, 0.88);
+        box-shadow: 0 24px 90px rgba(0, 0, 0, 0.38), 0 0 70px rgba(58, 95, 160, 0.08);
+      }
+
+      .scoreboard {
+        justify-content: center;
+        gap: clamp(28px, 8vw, 88px);
+        min-height: 99px;
+        padding: 18px 24px;
+        border-bottom: 1px solid rgba(171, 190, 255, 0.1);
+        background: rgba(255, 255, 255, 0.012);
+      }
+
+      .player {
+        min-width: 105px;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .player-name {
+        color: #8994ad;
+        font-size: 10px;
+        font-weight: 750;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+      }
+
+      .score {
+        color: #f5f7ff;
+        font-size: 35px;
+        font-variant-numeric: tabular-nums;
+        font-weight: 750;
+        letter-spacing: -0.06em;
+        line-height: 1.1;
+      }
+
+      .player:last-child .score {
+        color: #73f5cf;
+      }
+
+      .score-divider {
+        align-self: center;
+        margin-top: 15px;
+        color: #49536c;
+        font-size: 19px;
+        font-weight: 300;
+      }
+
+      .court {
+        position: relative;
+        background: #0c1220;
+      }
+
+      canvas {
+        display: block;
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        touch-action: none;
+      }
+
+      .overlay {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        padding: 20px;
+        background: rgba(8, 12, 21, 0.52);
+        text-align: center;
+        backdrop-filter: blur(5px);
+      }
+
+      .overlay[hidden] {
+        display: none;
+      }
+
+      .overlay-content {
+        max-width: 360px;
+      }
+
+      .overlay-kicker {
+        margin: 0 0 8px;
+        color: #73f5cf;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+      }
+
+      .overlay h2 {
+        margin: 0;
+        font-size: clamp(24px, 4vw, 35px);
+        letter-spacing: -0.045em;
+      }
+
+      .overlay p:not(.overlay-kicker) {
+        margin: 9px 0 20px;
+        color: #a4aec5;
+        font-size: 13px;
+        line-height: 1.55;
+      }
+
+      .primary-button {
+        min-height: 44px;
+        padding: 0 20px;
+        border: 0;
+        border-radius: 12px;
+        background: #73f5cf;
+        color: #08130f;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 800;
+        transition: background 140ms ease, transform 140ms ease;
+      }
+
+      .primary-button:hover {
+        background: #9bffdf;
+        transform: translateY(-1px);
+      }
+
+      .primary-button:focus-visible,
+      .icon-button:focus-visible,
+      .restart-button:focus-visible,
+      .touch-button:focus-visible {
+        outline: 2px solid #73f5cf;
+        outline-offset: 3px;
+      }
+
+      .game-footer {
+        justify-content: space-between;
+        gap: 16px;
+        padding: 15px 20px;
+        border-top: 1px solid rgba(171, 190, 255, 0.1);
+      }
+
+      .keyboard-hint {
+        gap: 10px;
+        color: #8f99b0;
+        font-size: 11px;
+      }
+
+      .key-group {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      kbd {
+        display: inline-grid;
+        min-width: 22px;
+        height: 22px;
+        place-items: center;
+        padding: 0 5px;
+        border: 1px solid rgba(255, 255, 255, 0.13);
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.045);
+        color: #d5dbeb;
+        font-family: inherit;
+        font-size: 10px;
+      }
+
+      .restart-button {
+        min-height: 32px;
+        padding: 0 11px;
+        border-radius: 9px;
+        font-size: 11px;
+        font-weight: 650;
+      }
+
+      .touch-controls {
+        display: none;
+        justify-content: center;
+        gap: 12px;
+        margin-top: 14px;
+      }
+
+      .touch-button {
+        width: 74px;
+        height: 48px;
+        border-radius: 13px;
+        font-size: 20px;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: none;
+      }
+
+      .footnote {
+        margin: 18px 0 0;
+        color: #66718a;
+        font-size: 10px;
+        text-align: center;
+      }
+
+      @media (max-width: 600px) {
+        .page {
+          width: min(100% - 24px, 1040px);
+          padding-top: 16px;
+        }
+
+        .topbar {
+          margin-bottom: 34px;
+        }
+
+        .intro {
+          margin-bottom: 20px;
+        }
+
+        .scoreboard {
+          min-height: 78px;
+        }
+
+        .score {
+          font-size: 29px;
+        }
+
+        .player-name {
+          font-size: 9px;
+        }
+
+        .game-footer {
+          padding: 12px;
+        }
+
+        .keyboard-hint {
+          gap: 7px;
+          font-size: 10px;
+        }
+
+        .touch-controls {
+          display: flex;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header class="topbar">
+        <div class="brand"><span class="brand-mark" aria-hidden="true">▮</span> Arcade / 001</div>
+        <div class="top-actions">
+          <div class="status-pill" id="statusPill" data-state="ready" role="status" aria-live="polite">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span id="statusText">Ready</span>
+          </div>
+          <button class="icon-button" id="pauseButton" type="button" aria-label="Pause game" title="Pause (Space)">Ⅱ</button>
+        </div>
+      </header>
+
+      <section class="intro" aria-labelledby="pageTitle">
+        <p class="eyebrow">The original arcade classic</p>
+        <h1 id="pageTitle">PONG<span>.</span></h1>
+        <p class="subtitle">A little friendly competition. First to 7 takes the match.</p>
+      </section>
+
+      <section class="game-card" aria-label="Pong game">
+        <div class="scoreboard" aria-label="Scoreboard">
+          <div class="player">
+            <span class="player-name">You</span>
+            <span class="score" id="playerScore" aria-label="Your score">0</span>
+          </div>
+          <span class="score-divider" aria-hidden="true">:</span>
+          <div class="player">
+            <span class="player-name">CPU</span>
+            <span class="score" id="cpuScore" aria-label="CPU score">0</span>
+          </div>
+        </div>
+        <div class="court">
+          <canvas id="gameCanvas" width="960" height="540" role="img" aria-label="Pong court. Use W and S or the up and down arrow keys to move your paddle.">
+            Your browser does not support the canvas element.
+          </canvas>
+          <div class="overlay" id="gameOverlay">
+            <div class="overlay-content">
+              <p class="overlay-kicker" id="overlayKicker">Ready when you are</p>
+              <h2 id="overlayTitle">Ready to rally?</h2>
+              <p id="overlayMessage">Move your paddle, return the ball, and be the first to score 7.</p>
+              <button class="primary-button" id="overlayButton" type="button">Start game</button>
+            </div>
+          </div>
+        </div>
+        <div class="game-footer">
+          <div class="keyboard-hint" aria-label="Keyboard controls">
+            <span>Move</span>
+            <span class="key-group"><kbd>W</kbd><kbd>S</kbd></span>
+            <span>or</span>
+            <span class="key-group"><kbd>↑</kbd><kbd>↓</kbd></span>
+            <span class="desktop-only">· &nbsp;Pause <kbd>Space</kbd></span>
+          </div>
+          <button class="restart-button" id="restartButton" type="button">↻ &nbsp;Restart</button>
+        </div>
+      </section>
+
+      <div class="touch-controls" aria-label="Touch paddle controls">
+        <button class="touch-button" type="button" data-control="up" aria-label="Move paddle up">↑</button>
+        <button class="touch-button" type="button" data-control="down" aria-label="Move paddle down">↓</button>
+      </div>
+      <p class="footnote">A quick game by Neon Rally Studio</p>
+    </main>
+
+    <script>
+      (() => {
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const overlay = document.getElementById("gameOverlay");
+        const overlayKicker = document.getElementById("overlayKicker");
+        const overlayTitle = document.getElementById("overlayTitle");
+        const overlayMessage = document.getElementById("overlayMessage");
+        const overlayButton = document.getElementById("overlayButton");
+        const statusPill = document.getElementById("statusPill");
+        const statusText = document.getElementById("statusText");
+        const playerScoreElement = document.getElementById("playerScore");
+        const cpuScoreElement = document.getElementById("cpuScore");
+        const pauseButton = document.getElementById("pauseButton");
+        const restartButton = document.getElementById("restartButton");
+
+        const WIDTH = canvas.width;
+        const HEIGHT = canvas.height;
+        const WINNING_SCORE = 7;
+        const PADDLE_WIDTH = 12;
+        const PADDLE_HEIGHT = 96;
+        const BALL_RADIUS = 9;
+        const PLAYER_SPEED = 510;
+        const AI_SPEED = 385;
+        const keys = new Set();
+        const player = { x: 30, y: (HEIGHT - PADDLE_HEIGHT) / 2, score: 0 };
+        const cpu = { x: WIDTH - 30 - PADDLE_WIDTH, y: (HEIGHT - PADDLE_HEIGHT) / 2, score: 0 };
+        const ball = { x: WIDTH / 2, y: HEIGHT / 2, vx: 0, vy: 0, speed: 390 };
+        let state = "ready";
+        let previousTime = 0;
+        let rallyCount = 0;
+
+        function setState(nextState) {
+          state = nextState;
+          statusPill.dataset.state = nextState;
+          statusText.textContent = nextState === "playing" ? "In play" : nextState === "paused" ? "Paused" : nextState === "finished" ? "Match over" : "Ready";
+          pauseButton.textContent = nextState === "paused" ? "▶" : "Ⅱ";
+          pauseButton.setAttribute("aria-label", nextState === "paused" ? "Resume game" : "Pause game");
+          pauseButton.disabled = nextState === "ready" || nextState === "finished";
+
+          if (nextState === "playing") {
+            overlay.hidden = true;
+            return;
+          }
+
+          overlay.hidden = false;
+          if (nextState === "paused") {
+            overlayKicker.textContent = "Take your time";
+            overlayTitle.textContent = "Game paused";
+            overlayMessage.textContent = "Your rally is waiting right here.";
+            overlayButton.textContent = "Resume game";
+          } else if (nextState === "finished") {
+            const playerWon = player.score > cpu.score;
+            overlayKicker.textContent = playerWon ? "Nice rally" : "Good game";
+            overlayTitle.textContent = playerWon ? "You win!" : "CPU takes it.";
+            overlayMessage.textContent = `${player.score} — ${cpu.score}. Ready for a rematch?`;
+            overlayButton.textContent = "Play again";
+          } else {
+            overlayKicker.textContent = "Ready when you are";
+            overlayTitle.textContent = "Ready to rally?";
+            overlayMessage.textContent = "Move your paddle, return the ball, and be the first to score 7.";
+            overlayButton.textContent = "Start game";
+          }
+        }
+
+        function updateScore() {
+          playerScoreElement.textContent = String(player.score);
+          cpuScoreElement.textContent = String(cpu.score);
+        }
+
+        function resetBall(direction = Math.random() < 0.5 ? -1 : 1) {
+          ball.x = WIDTH / 2;
+          ball.y = HEIGHT / 2;
+          ball.speed = 390 + Math.min(rallyCount, 8) * 9;
+          const angle = (Math.random() * 0.7 - 0.35);
+          ball.vx = Math.cos(angle) * ball.speed * direction;
+          ball.vy = Math.sin(angle) * ball.speed;
+        }
+
+        function startMatch() {
+          if (state === "paused") {
+            setState("playing");
+            return;
+          }
+          if (state === "finished") {
+            player.score = 0;
+            cpu.score = 0;
+            rallyCount = 0;
+            updateScore();
+          }
+          player.y = (HEIGHT - PADDLE_HEIGHT) / 2;
+          cpu.y = (HEIGHT - PADDLE_HEIGHT) / 2;
+          resetBall();
+          setState("playing");
+        }
+
+        function pauseMatch() {
+          if (state === "playing") {
+            keys.clear();
+            setState("paused");
+          } else if (state === "paused") {
+            setState("playing");
+          }
+        }
+
+        function restartMatch() {
+          player.score = 0;
+          cpu.score = 0;
+          rallyCount = 0;
+          player.y = (HEIGHT - PADDLE_HEIGHT) / 2;
+          cpu.y = (HEIGHT - PADDLE_HEIGHT) / 2;
+          updateScore();
+          resetBall();
+          setState("ready");
+        }
+
+        function movePaddle(paddle, amount) {
+          paddle.y = Math.max(0, Math.min(HEIGHT - PADDLE_HEIGHT, paddle.y + amount));
+        }
+
+        function hitPaddle(paddle, direction) {
+          const impact = (ball.y - (paddle.y + PADDLE_HEIGHT / 2)) / (PADDLE_HEIGHT / 2);
+          const angle = impact * 0.95;
+          ball.speed = Math.min(ball.speed * 1.055, 820);
+          ball.vx = Math.cos(angle) * ball.speed * direction;
+          ball.vy = Math.sin(angle) * ball.speed;
+          rallyCount += 1;
+          ball.x = direction > 0 ? paddle.x + PADDLE_WIDTH + BALL_RADIUS : paddle.x - BALL_RADIUS;
+        }
+
+        function update(delta) {
+          if (state !== "playing") return;
+
+          if (keys.has("ArrowUp") || keys.has("w") || keys.has("W")) movePaddle(player, -PLAYER_SPEED * delta);
+          if (keys.has("ArrowDown") || keys.has("s") || keys.has("S")) movePaddle(player, PLAYER_SPEED * delta);
+
+          const aiTarget = ball.vx > 0 && ball.x > WIDTH * 0.38
+            ? ball.y - PADDLE_HEIGHT / 2
+            : HEIGHT / 2 - PADDLE_HEIGHT / 2;
+          const aiDifference = aiTarget - cpu.y;
+          movePaddle(cpu, Math.max(-AI_SPEED * delta, Math.min(AI_SPEED * delta, aiDifference)));
+
+          ball.x += ball.vx * delta;
+          ball.y += ball.vy * delta;
+
+          if (ball.y - BALL_RADIUS <= 0 && ball.vy < 0) {
+            ball.y = BALL_RADIUS;
+            ball.vy = Math.abs(ball.vy);
+          } else if (ball.y + BALL_RADIUS >= HEIGHT && ball.vy > 0) {
+            ball.y = HEIGHT - BALL_RADIUS;
+            ball.vy = -Math.abs(ball.vy);
+          }
+
+          const overlapsPlayer = ball.vx < 0
+            && ball.x - BALL_RADIUS <= player.x + PADDLE_WIDTH
+            && ball.x + BALL_RADIUS >= player.x
+            && ball.y + BALL_RADIUS >= player.y
+            && ball.y - BALL_RADIUS <= player.y + PADDLE_HEIGHT;
+          const overlapsCpu = ball.vx > 0
+            && ball.x + BALL_RADIUS >= cpu.x
+            && ball.x - BALL_RADIUS <= cpu.x + PADDLE_WIDTH
+            && ball.y + BALL_RADIUS >= cpu.y
+            && ball.y - BALL_RADIUS <= cpu.y + PADDLE_HEIGHT;
+
+          if (overlapsPlayer) hitPaddle(player, 1);
+          if (overlapsCpu) hitPaddle(cpu, -1);
+
+          if (ball.x + BALL_RADIUS < 0) {
+            cpu.score += 1;
+            updateScore();
+            rallyCount = 0;
+            if (cpu.score >= WINNING_SCORE) setState("finished");
+            else resetBall(1);
+          } else if (ball.x - BALL_RADIUS > WIDTH) {
+            player.score += 1;
+            updateScore();
+            rallyCount = 0;
+            if (player.score >= WINNING_SCORE) setState("finished");
+            else resetBall(-1);
+          }
+        }
+
+        function draw() {
+          ctx.clearRect(0, 0, WIDTH, HEIGHT);
+          ctx.fillStyle = "#0c1220";
+          ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+          const glow = ctx.createRadialGradient(WIDTH / 2, HEIGHT / 2, 30, WIDTH / 2, HEIGHT / 2, WIDTH * 0.55);
+          glow.addColorStop(0, "rgba(45, 70, 114, 0.15)");
+          glow.addColorStop(1, "rgba(12, 18, 32, 0)");
+          ctx.fillStyle = glow;
+          ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+          ctx.save();
+          ctx.setLineDash([9, 13]);
+          ctx.strokeStyle = "rgba(162, 178, 215, 0.2)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(WIDTH / 2, 28);
+          ctx.lineTo(WIDTH / 2, HEIGHT - 28);
+          ctx.stroke();
+          ctx.restore();
+
+          drawPaddle(player, "#f2f5ff", "rgba(242, 245, 255, 0.24)");
+          drawPaddle(cpu, "#73f5cf", "rgba(115, 245, 207, 0.24)");
+
+          ctx.save();
+          ctx.shadowColor = "rgba(115, 245, 207, 0.72)";
+          ctx.shadowBlur = 22;
+          ctx.fillStyle = "#f3fff9";
+          ctx.beginPath();
+          ctx.arc(ball.x, ball.y, BALL_RADIUS, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+
+          if (state !== "playing") {
+            ctx.fillStyle = "rgba(173, 190, 227, 0.35)";
+            ctx.beginPath();
+            ctx.arc(WIDTH / 2, HEIGHT / 2, 22, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+
+        function drawPaddle(paddle, color, glowColor) {
+          ctx.save();
+          ctx.shadowColor = glowColor;
+          ctx.shadowBlur = 18;
+          ctx.fillStyle = color;
+          ctx.beginPath();
+          ctx.roundRect(paddle.x, paddle.y, PADDLE_WIDTH, PADDLE_HEIGHT, 6);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        function frame(time) {
+          const delta = previousTime ? Math.min((time - previousTime) / 1000, 0.032) : 0;
+          previousTime = time;
+          update(delta);
+          draw();
+          requestAnimationFrame(frame);
+        }
+
+        function isControlKey(key) {
+          return key === "ArrowUp" || key === "ArrowDown" || key === " " || key.toLowerCase() === "w" || key.toLowerCase() === "s";
+        }
+
+        document.addEventListener("keydown", (event) => {
+          if (event.key === " " && event.target instanceof Element && event.target.closest("button, a, input, textarea, select, [contenteditable='true']")) return;
+          if (isControlKey(event.key)) event.preventDefault();
+          if (event.key === " " || event.key === "Escape") {
+            if (!event.repeat && (state === "playing" || state === "paused")) pauseMatch();
+            else if (!event.repeat && state !== "playing" && state !== "paused") startMatch();
+            return;
+          }
+          keys.add(event.key);
+        });
+
+        document.addEventListener("keyup", (event) => keys.delete(event.key));
+        window.addEventListener("blur", () => keys.clear());
+        overlayButton.addEventListener("click", startMatch);
+        pauseButton.addEventListener("click", pauseMatch);
+        restartButton.addEventListener("click", restartMatch);
+
+        document.querySelectorAll(".touch-button").forEach((button) => {
+          const control = button.dataset.control === "up" ? "ArrowUp" : "ArrowDown";
+          button.addEventListener("pointerdown", (event) => {
+            event.preventDefault();
+            keys.add(control);
+            button.setPointerCapture(event.pointerId);
+          });
+          const release = () => keys.delete(control);
+          button.addEventListener("pointerup", release);
+          button.addEventListener("pointercancel", release);
+          button.addEventListener("lostpointercapture", release);
+        });
+
+        setState("ready");
+        updateScore();
+        requestAnimationFrame(frame);
+      })();
+    </script>
+  </body>
+</html>
